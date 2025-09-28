@@ -36,9 +36,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#1a2635] text-[#cdd3da]`}
       >
-        <div className="min-h-screen flex flex-col items-center p-4 sm:p-6 font-sans">
+        <div className="min-h-screen flex flex-col font-sans">
           <Header />
-          {children}
+          <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
+            {children}
+          </main>
         </div>
       </body>
     </html>

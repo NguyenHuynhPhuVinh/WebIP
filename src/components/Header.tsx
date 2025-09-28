@@ -18,8 +18,8 @@ export default function Header() {
   };
 
   return (
-    <header className="w-full max-w-7xl">
-      <div className="flex justify-between items-center py-2">
+    <header className="w-full border-b border-gray-700 sticky top-0 bg-gray-900/80 backdrop-blur-lg z-10">
+      <div className="container mx-auto flex justify-between items-center py-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -40,46 +40,46 @@ export default function Header() {
             IP Programming Demo
           </span>
         </Link>
-        <div className="flex items-center gap-4">
-          <form onSubmit={handleSearch} className="relative hidden lg:block">
-            <input
-              type="text"
-              value={ip}
-              onChange={(e) => setIp(e.target.value)}
-              placeholder="Từ khóa | Địa chỉ IP"
-              className="bg-[#0f1a29] border border-gray-600 rounded-md py-2 px-4 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-            />
-            <button
-              type="submit"
-              className="absolute right-0 top-0 h-full bg-blue-600 text-white px-4 rounded-r-md hover:bg-blue-700 font-bold text-sm"
-            >
-              Tìm kiếm
-            </button>
-          </form>
-        </div>
+
+        <nav className="hidden md:flex items-center space-x-8 text-sm font-semibold">
+          <Link
+            href="/"
+            className={`transition-colors duration-200 ${
+              pathname === "/"
+                ? "text-blue-400"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            IP CỦA TÔI
+          </Link>
+          <Link
+            href="/lookup"
+            className={`transition-colors duration-200 ${
+              pathname.startsWith("/lookup")
+                ? "text-blue-400"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            TRA CỨU IP
+          </Link>
+        </nav>
+
+        <form onSubmit={handleSearch} className="relative hidden sm:block">
+          <input
+            type="text"
+            value={ip}
+            onChange={(e) => setIp(e.target.value)}
+            placeholder="Tra cứu IP hoặc tên miền..."
+            className="bg-gray-800 border border-gray-700 rounded-md py-2 pl-4 pr-24 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+          />
+          <button
+            type="submit"
+            className="absolute right-1 top-1 h-[calc(100%-8px)] bg-blue-600 text-white px-3 rounded-md hover:bg-blue-700 font-bold text-xs"
+          >
+            Tìm kiếm
+          </button>
+        </form>
       </div>
-      <nav className="flex items-center space-x-8 text-sm font-semibold border-t border-b border-gray-700 py-3 mt-2">
-        <Link
-          href="/"
-          className={
-            pathname === "/"
-              ? "text-white border-b-2 border-blue-500 pb-3 -mb-[13px]"
-              : "text-gray-300 hover:text-white"
-          }
-        >
-          IP CỦA TÔI
-        </Link>
-        <Link
-          href="/lookup"
-          className={
-            pathname.startsWith("/lookup")
-              ? "text-white border-b-2 border-blue-500 pb-3 -mb-[13px]"
-              : "text-gray-300 hover:text-white"
-          }
-        >
-          TRA CỨU IP
-        </Link>
-      </nav>
     </header>
   );
 }
