@@ -1,102 +1,220 @@
-import Image from "next/image";
+import { headers } from "next/headers";
+import MapWrapper from "../components/MapWrapper";
 
-export default function Home() {
+interface IpInfo {
+  status: string;
+  message?: string;
+  country: string;
+  regionName: string;
+  city: string;
+  lat: number;
+  lon: number;
+  isp: string;
+  query: string;
+}
+
+const isIPv4 = (ip: string) => {
+  return /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip);
+};
+
+export default async function Home() {
+  const headersList = headers();
+  // Lấy IP từ header, ưu tiên x-forwarded-for. Dùng 8.8.8.8 làm dự phòng.
+  const ip =
+    (headersList as any).get("x-forwarded-for")?.split(",")[0] || "8.8.8.8";
+
+  let ipInfo: IpInfo | null = null;
+  let error: string | null = null;
+
+  try {
+    const res = await fetch(
+      `http://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,lat,lon,isp,query`,
+      { next: { revalidate: 3600 } }
+    );
+    if (!res.ok) {
+      throw new Error("Không thể kết nối đến dịch vụ IP.");
+    }
+    const data = await res.json();
+    if (data.status === "fail") {
+      throw new Error(data.message || "Không thể lấy thông tin IP.");
+    }
+    ipInfo = data;
+  } catch (e: any) {
+    error = e.message || "Đã xảy ra lỗi không xác định.";
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen flex flex-col items-center p-4 sm:p-6 font-sans">
+      <header className="w-full max-w-7xl">
+        <div className="flex justify-between items-center py-2">
+          <div className="flex items-center gap-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="#3b82f6"
+              stroke="#fff"
+              strokeWidth="0.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+              <path d="M2 12h20" />
+            </svg>
+            <span className="text-xl font-bold text-white">
+              WhatIsMyIPAddress
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative hidden lg:block">
+              <input
+                type="text"
+                placeholder="Từ khóa | Địa chỉ IP"
+                className="bg-[#0f1a29] border border-gray-600 rounded-md py-2 px-4 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+              />
+              <button className="absolute right-0 top-0 h-full bg-blue-600 text-white px-4 rounded-r-md hover:bg-blue-700 font-bold text-sm">
+                Tìm kiếm
+              </button>
+            </div>
+            <nav className="hidden md:flex items-center space-x-6 text-sm text-gray-300">
+              <a href="#" className="hover:text-white">
+                VỀ
+              </a>
+              <a href="#" className="hover:text-white">
+                BÁO CHÍ
+              </a>
+              <a href="#" className="hover:text-white">
+                PODCAST
+              </a>
+              <a href="#" className="hover:text-white">
+                LIÊN HỆ
+              </a>
+            </nav>
+          </div>
         </div>
+        <nav className="flex items-center space-x-8 text-sm font-semibold border-t border-b border-gray-700 py-3 mt-2">
+          <a
+            href="#"
+            className="text-white border-b-2 border-blue-500 pb-3 -mb-[13px]"
+          >
+            IP CỦA TÔI
+          </a>
+          <a href="#" className="text-gray-300 hover:text-white">
+            TRA CỨU IP
+          </a>
+          <a href="#" className="text-gray-300 hover:text-white">
+            ẨN IP CỦA TÔI
+          </a>
+          <a href="#" className="text-gray-300 hover:text-white">
+            VPNS ▾
+          </a>
+          <a href="#" className="text-gray-300 hover:text-white">
+            CÔNG CỤ ▾
+          </a>
+          <a href="#" className="text-gray-300 hover:text-white">
+            HỌC TẬP ▾
+          </a>
+        </nav>
+      </header>
+
+      <main className="w-full max-w-7xl flex-grow mt-6 bg-[#0f1a29] p-6 sm:p-8 rounded-lg">
+        {error ? (
+          <div className="text-red-400 text-center bg-red-900/50 p-4 rounded-lg">
+            {error}
+          </div>
+        ) : ipInfo ? (
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Cột trái */}
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg mb-3">Địa chỉ IP của tôi là:</h2>
+                <div className="bg-[#1a2635] p-5 rounded-lg space-y-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-lg w-12">IPv4:</span>
+                    <a
+                      href="#"
+                      className="font-bold text-blue-400 text-2xl hover:underline"
+                    >
+                      {isIPv4(ipInfo.query) ? ipInfo.query : "Not detected"}
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-lg w-12">IPv6:</span>
+                    <span className="font-semibold text-gray-500 text-lg">
+                      {!isIPv4(ipInfo.query) ? ipInfo.query : "Not detected"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h2 className="text-lg mb-3">Thông tin IP của tôi:</h2>
+                <div className="bg-[#1a2635] p-5 rounded-lg space-y-3 text-md">
+                  <div className="flex justify-between items-center">
+                    <p className="text-gray-400">Nhà mạng:</p>
+                    <span className="font-semibold text-right">
+                      {ipInfo.isp}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-gray-400">Thành phố:</p>
+                    <span className="font-semibold text-right">
+                      {ipInfo.city}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-gray-400">Khu vực:</p>
+                    <span className="font-semibold text-right">
+                      {ipInfo.regionName}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-gray-400">Quốc gia:</p>
+                    <span className="font-semibold text-right">
+                      {ipInfo.country}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Cột phải */}
+            <div className="flex flex-col items-center">
+              <div className="w-full h-64 mb-4 relative">
+                <MapWrapper
+                  lat={ipInfo.lat}
+                  lon={ipInfo.lon}
+                  ip={ipInfo.query}
+                />
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-white/90 text-black p-2 rounded shadow-lg text-xs font-semibold">
+                  Nhấn để biết thêm chi tiết về {ipInfo.query}
+                </div>
+              </div>
+              <p className="text-yellow-400 text-center text-lg my-2">
+                Twoje prywatne dane są widoczne!
+              </p>
+              <button className="w-full bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition-colors text-lg">
+                ẨN ĐỊA CHỈ IP CỦA TÔI NGAY
+              </button>
+              <a
+                href="#"
+                className="text-blue-400 mt-4 text-sm underline hover:text-blue-300"
+              >
+                Hiển thị thông tin IP hoàn chỉnh
+              </a>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center">Đang tải thông tin IP...</div>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="w-full max-w-7xl mt-12 text-center">
+        <h2 className="text-3xl font-light text-gray-400">
+          Bạn lo ngại điều gì nhất khi sử dụng Internet?
+        </h2>
       </footer>
     </div>
   );
