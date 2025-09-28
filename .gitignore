@@ -17,6 +17,8 @@
 /.next/
 /out/
 
+/.mastercontext/
+
 # production
 /build
 
