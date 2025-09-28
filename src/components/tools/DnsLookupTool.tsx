@@ -1,5 +1,6 @@
 "use client";
 
+import ToolVisualization from "./ToolVisualization";
 import { useState } from "react";
 
 interface DnsResult {
@@ -11,12 +12,16 @@ export default function DnsLookupTool() {
   const [results, setResults] = useState<DnsResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [visualStatus, setVisualStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!host.trim() || isLoading) return;
 
     setIsLoading(true);
+    setVisualStatus("loading");
     setError(null);
     setResults(null);
 
@@ -30,7 +35,9 @@ export default function DnsLookupTool() {
         );
       }
       setResults(data);
+      setVisualStatus("success");
     } catch (err: any) {
+      setVisualStatus("error");
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -64,6 +71,7 @@ export default function DnsLookupTool() {
           {isLoading ? "Looking up..." : "Lookup"}
         </button>
       </form>
+      <ToolVisualization toolType="dns-lookup" status={visualStatus} />
       <div className="bg-black rounded-lg p-4 font-mono text-sm min-h-[200px] overflow-x-auto">
         {isLoading && (
           <p className="text-gray-400 animate-pulse">

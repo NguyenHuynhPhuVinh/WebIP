@@ -1,5 +1,6 @@
 "use client";
 
+import ToolVisualization from "./ToolVisualization";
 import { useState } from "react";
 
 interface PingResult {
@@ -11,12 +12,16 @@ export default function PingTool() {
   const [host, setHost] = useState("google.com");
   const [results, setResults] = useState<PingResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [visualStatus, setVisualStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const handlePing = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!host.trim() || isLoading) return;
 
     setIsLoading(true);
+    setVisualStatus("loading");
     setResults([]);
 
     setResults([{ type: "info", message: `Pinging ${host.trim()}...` }]);
@@ -29,6 +34,7 @@ export default function PingTool() {
         if (data.error) {
           throw new Error(data.error);
         }
+        setVisualStatus("success");
 
         setResults((prev) => [
           ...prev,
@@ -38,6 +44,7 @@ export default function PingTool() {
           },
         ]);
       } catch (error: any) {
+        setVisualStatus("error");
         setResults((prev) => [
           ...prev,
           {
@@ -73,6 +80,7 @@ export default function PingTool() {
           {isLoading ? "Pinging..." : "Ping"}
         </button>
       </form>
+      <ToolVisualization toolType="ping" status={visualStatus} />
       <div className="bg-black rounded-lg p-4 font-mono text-sm min-h-[200px] overflow-x-auto">
         {results.map((result, index) => (
           <p

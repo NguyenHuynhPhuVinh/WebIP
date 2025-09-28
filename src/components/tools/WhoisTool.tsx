@@ -1,5 +1,6 @@
 "use client";
 
+import ToolVisualization from "./ToolVisualization";
 import { useState } from "react";
 
 export default function WhoisTool() {
@@ -7,12 +8,16 @@ export default function WhoisTool() {
   const [result, setResult] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [visualStatus, setVisualStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim() || isLoading) return;
 
     setIsLoading(true);
+    setVisualStatus("loading");
     setError(null);
     setResult(null);
 
@@ -24,7 +29,9 @@ export default function WhoisTool() {
         throw new Error(data.error || "An unknown error occurred");
       }
       setResult(data.result);
+      setVisualStatus("success");
     } catch (err: any) {
+      setVisualStatus("error");
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -50,6 +57,7 @@ export default function WhoisTool() {
           {isLoading ? "Looking up..." : "Lookup"}
         </button>
       </form>
+      <ToolVisualization toolType="whois" status={visualStatus} />
       <div className="bg-black rounded-lg p-4 font-mono text-sm min-h-[200px] overflow-x-auto">
         {isLoading && (
           <p className="text-gray-400 animate-pulse">Fetching WHOIS data...</p>
