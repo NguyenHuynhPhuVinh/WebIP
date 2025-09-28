@@ -67,13 +67,13 @@ export default async function Home() {
                     href="#"
                     className="font-bold text-blue-400 text-2xl hover:underline"
                   >
-                    {isIPv4(ipInfo.query) ? ipInfo.query : "Not detected"}
+                    {isIPv4(ipInfo.query) ? ipInfo.query : "Không phát hiện"}
                   </a>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-lg w-12">IPv6:</span>
                   <span className="font-semibold text-gray-500 text-lg">
-                    {!isIPv4(ipInfo.query) ? ipInfo.query : "Not detected"}
+                    {!isIPv4(ipInfo.query) ? ipInfo.query : "Không phát hiện"}
                   </span>
                 </div>
               </div>

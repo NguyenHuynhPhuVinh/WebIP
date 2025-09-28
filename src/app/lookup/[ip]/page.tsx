@@ -34,6 +34,28 @@ export default async function LookupResultPage({
 }) {
   const ipInfo = await getIpInfo(params.ip);
 
+  const keyTranslations: { [key: string]: string } = {
+    query: "IP / Tên miền",
+    status: "Trạng thái",
+    continent: "Lục địa",
+    continentCode: "Mã lục địa",
+    country: "Quốc gia",
+    countryCode: "Mã quốc gia",
+    region: "Mã khu vực",
+    regionName: "Tên khu vực",
+    city: "Thành phố",
+    zip: "Mã bưu chính",
+    lat: "Vĩ độ",
+    lon: "Kinh độ",
+    timezone: "Múi giờ",
+    isp: "Nhà mạng (ISP)",
+    org: "Tổ chức",
+    as: "AS (Số hiệu mạng)",
+    mobile: "Thiết bị di động",
+    proxy: "Proxy/VPN",
+    hosting: "Hosting",
+  };
+
   return (
     <main className="w-full max-w-7xl flex-grow mt-6 bg-[#0f1a29] p-6 sm:p-8 rounded-lg">
       <h1 className="text-2xl font-bold mb-6">
@@ -50,14 +72,31 @@ export default async function LookupResultPage({
         <div className="grid md:grid-cols-2 gap-8">
           {/* Cột trái: Thông tin chi tiết */}
           <div className="bg-[#1a2635] p-5 rounded-lg space-y-2 text-md overflow-x-auto">
-            {Object.entries(ipInfo).map(([key, value]) => (
-              <div key={key} className="flex justify-between items-start gap-4">
-                <p className="text-gray-400 capitalize flex-shrink-0">{key}:</p>
-                <span className="font-semibold text-right break-all">
-                  {typeof value === "boolean" ? (value ? "Yes" : "No") : value}
-                </span>
-              </div>
-            ))}
+            {Object.entries(ipInfo).map(([key, value]) => {
+              const translatedKey =
+                keyTranslations[key] ||
+                key.charAt(0).toUpperCase() + key.slice(1);
+              const displayValue =
+                typeof value === "boolean"
+                  ? value
+                    ? "Có"
+                    : "Không"
+                  : String(value);
+
+              return (
+                <div
+                  key={key}
+                  className="flex justify-between items-start gap-4"
+                >
+                  <p className="text-gray-400 flex-shrink-0">
+                    {translatedKey}:
+                  </p>
+                  <span className="font-semibold text-right break-all">
+                    {displayValue}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           {/* Cột phải: Bản đồ */}
