@@ -1,13 +1,12 @@
 # Stage 1: Builder
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 # Set working directory
 WORKDIR /app
 
 # Install dependencies
-# Using --no-optional for a leaner install
 COPY package.json ./
-RUN npm install --no-optional
+RUN npm install
 
 # Copy the rest of the application source code
 COPY . .
@@ -16,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Runner
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
