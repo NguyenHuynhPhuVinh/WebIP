@@ -1,7 +1,8 @@
-import { headers } from "next/headers";
+"use client";
+
 import MapWrapper from "@/components/MapWrapper";
 import CopyButton from "@/components/CopyButton";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 interface IpInfo {
   status: string;
@@ -16,48 +17,35 @@ interface IpInfo {
   query: string;
 }
 
-const isIPv4 = (ip: string) => {
-  return /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip);
-};
+export default function Home() {
+  const [ipInfo, setIpInfo] = useState<IpInfo | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function Home() {
-  const headersList = await headers();
-  // Lấy IP từ header, ưu tiên x-forwarded-for. Dùng 8.8.8.8 làm dự phòng.
-  let ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim();
+  useEffect(() => {
+    const fetchIpInfo = async () => {
+      try {
+        const res = await fetch(
+          `http://ip-api.com/json/?fields=status,message,country,regionName,city,lat,lon,isp,org,query`
+        );
+        if (!res.ok) {
+          throw new Error("Không thể kết nối đến dịch vụ IP.");
+        }
+        const data = await res.json();
+        if (data.status === "fail") {
+          throw new Error(data.message || "Không thể lấy thông tin IP.");
+        }
+        setIpInfo(data);
+      } catch (e: any) {
+        setError(e.message || "Đã xảy ra lỗi không xác định.");
+      }
+    };
 
-  // Khi chạy ở local (development), IP sẽ là địa chỉ nội bộ (reserved range).
-  // Chúng ta sẽ dùng một IP công khai để test, khi deploy thì ip thật sẽ được dùng.
-  if (process.env.NODE_ENV === "development" || !ip) {
-    ip = "8.8.8.8"; // Google DNS IP, dùng để demo
-  }
-
-  let ipInfo: IpInfo | null = null;
-  let error: string | null = null;
-
-  try {
-    const res = await fetch(
-      `http://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,lat,lon,isp,org,query`,
-      { next: { revalidate: 3600 } }
-    );
-    if (!res.ok) {
-      throw new Error("Không thể kết nối đến dịch vụ IP.");
-    }
-    const data = await res.json();
-    if (data.status === "fail") {
-      throw new Error(data.message || "Không thể lấy thông tin IP.");
-    }
-    ipInfo = data;
-  } catch (e: any) {
-    error = e.message || "Đã xảy ra lỗi không xác định.";
-  }
+    fetchIpInfo();
+  }, []); // Mảng rỗng đảm bảo useEffect chỉ chạy một lần sau khi component được render
 
   return (
     <>
-      {error ? (
-        <div className="text-red-400 text-center bg-red-900/50 p-4 rounded-lg">
-          {error}
-        </div>
-      ) : ipInfo ? (
+      {ipInfo && !error ? (
         <div className="space-y-8">
           {/* IP Address Hero Section */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center relative">
@@ -127,8 +115,14 @@ export default async function Home() {
             </div>
           </div>
         </div>
+      ) : error ? (
+        <div className="text-red-400 text-center bg-red-900/50 p-4 rounded-lg">
+          {error}
+        </div>
       ) : (
-        <div className="text-center">Đang tải thông tin IP...</div>
+        <div className="text-center pt-16">
+          Đang tải thông tin IP của bạn...
+        </div>
       )}
     </>
   );
