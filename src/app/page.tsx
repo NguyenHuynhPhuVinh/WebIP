@@ -18,10 +18,15 @@ const isIPv4 = (ip: string) => {
 };
 
 export default async function Home() {
-  const headersList = headers();
+  const headersList = await headers();
   // Lấy IP từ header, ưu tiên x-forwarded-for. Dùng 8.8.8.8 làm dự phòng.
-  const ip =
-    (headersList as any).get("x-forwarded-for")?.split(",")[0] || "8.8.8.8";
+  let ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim();
+
+  // Khi chạy ở local (development), IP sẽ là địa chỉ nội bộ (reserved range).
+  // Chúng ta sẽ dùng một IP công khai để test, khi deploy thì ip thật sẽ được dùng.
+  if (process.env.NODE_ENV === "development" || !ip) {
+    ip = "8.8.8.8"; // Google DNS IP, dùng để demo
+  }
 
   let ipInfo: IpInfo | null = null;
   let error: string | null = null;
@@ -64,7 +69,7 @@ export default async function Home() {
               <path d="M2 12h20" />
             </svg>
             <span className="text-xl font-bold text-white">
-              WhatIsMyIPAddress
+              IP Programming Demo
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -78,20 +83,6 @@ export default async function Home() {
                 Tìm kiếm
               </button>
             </div>
-            <nav className="hidden md:flex items-center space-x-6 text-sm text-gray-300">
-              <a href="#" className="hover:text-white">
-                VỀ
-              </a>
-              <a href="#" className="hover:text-white">
-                BÁO CHÍ
-              </a>
-              <a href="#" className="hover:text-white">
-                PODCAST
-              </a>
-              <a href="#" className="hover:text-white">
-                LIÊN HỆ
-              </a>
-            </nav>
           </div>
         </div>
         <nav className="flex items-center space-x-8 text-sm font-semibold border-t border-b border-gray-700 py-3 mt-2">
@@ -103,18 +94,6 @@ export default async function Home() {
           </a>
           <a href="#" className="text-gray-300 hover:text-white">
             TRA CỨU IP
-          </a>
-          <a href="#" className="text-gray-300 hover:text-white">
-            ẨN IP CỦA TÔI
-          </a>
-          <a href="#" className="text-gray-300 hover:text-white">
-            VPNS ▾
-          </a>
-          <a href="#" className="text-gray-300 hover:text-white">
-            CÔNG CỤ ▾
-          </a>
-          <a href="#" className="text-gray-300 hover:text-white">
-            HỌC TẬP ▾
           </a>
         </nav>
       </header>
@@ -192,12 +171,7 @@ export default async function Home() {
                   Nhấn để biết thêm chi tiết về {ipInfo.query}
                 </div>
               </div>
-              <p className="text-yellow-400 text-center text-lg my-2">
-                Twoje prywatne dane są widoczne!
-              </p>
-              <button className="w-full bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition-colors text-lg">
-                ẨN ĐỊA CHỈ IP CỦA TÔI NGAY
-              </button>
+
               <a
                 href="#"
                 className="text-blue-400 mt-4 text-sm underline hover:text-blue-300"
@@ -210,12 +184,6 @@ export default async function Home() {
           <div className="text-center">Đang tải thông tin IP...</div>
         )}
       </main>
-
-      <footer className="w-full max-w-7xl mt-12 text-center">
-        <h2 className="text-3xl font-light text-gray-400">
-          Bạn lo ngại điều gì nhất khi sử dụng Internet?
-        </h2>
-      </footer>
     </div>
   );
 }
