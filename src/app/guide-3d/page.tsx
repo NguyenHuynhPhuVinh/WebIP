@@ -48,7 +48,7 @@ export default function Guide3DPage() {
   const currentStep = steps[step];
 
   return (
-    <div className="relative w-full h-[calc(100vh-200px)] bg-black rounded-lg overflow-hidden">
+    <div className="relative w-full h-[calc(100vh-200px)] bg-gray-900 rounded-lg overflow-hidden">
       <Canvas camera={{ position: [0, 2, 12], fov: 50 }}>
         <Suspense fallback={null}>
           <IpProgrammingScene step={step} />

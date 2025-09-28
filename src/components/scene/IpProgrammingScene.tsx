@@ -1,59 +1,50 @@
 import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import {
-  Stars,
-  Text,
-  CameraControls,
-  Sparkles,
-  Trail,
-} from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { Text, CameraControls } from "@react-three/drei";
 import * as THREE from "three";
 
 const serverPos = new THREE.Vector3(-4, 0, 0);
 const clientPos = new THREE.Vector3(4, 0, 0);
 
-function Node({
-  position,
-  label,
-  color,
-  isListening,
-}: {
-  position: THREE.Vector3;
-  label: string;
-  color: string;
-  isListening?: boolean;
-}) {
-  const meshRef = useRef<THREE.Mesh>(null!);
+function ClientPC({ position }: { position: THREE.Vector3 }) {
   const textRef = useRef<any>(null!);
-
-  useFrame((state, delta) => {
-    meshRef.current.rotation.y += delta * 0.2;
-    textRef.current.quaternion.copy(state.camera.quaternion); // Make text face camera
+  useFrame((state) => {
+    if (textRef.current) {
+      textRef.current.quaternion.copy(state.camera.quaternion);
+    }
   });
 
   return (
     <group position={position}>
-      <mesh ref={meshRef}>
-        <icosahedronGeometry args={[0.5, 1]} />
+      {/* PC Tower */}
+      <mesh position={[0.5, -0.3, 0]}>
+        <boxGeometry args={[0.4, 1, 0.8]} />
+        <meshStandardMaterial color="#333333" />
+      </mesh>
+      {/* Monitor */}
+      <mesh position={[-0.4, 0.1, 0]}>
+        <boxGeometry args={[1.2, 0.9, 0.1]} />
+        <meshStandardMaterial color="#222222" />
+      </mesh>
+      {/* Screen */}
+      <mesh position={[-0.4, 0.1, 0.06]}>
+        <boxGeometry args={[1.1, 0.8, 0.02]} />
         <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={2}
+          color="#55DDFF"
+          emissive="#55DDFF"
+          emissiveIntensity={0.3}
           toneMapped={false}
         />
       </mesh>
-      {isListening && (
-        <mesh scale={[1, 1, 1]}>
-          <torusGeometry args={[0.8, 0.02, 16, 100]} />
-          <meshStandardMaterial
-            color="#FFFF00"
-            emissive="#FFFF00"
-            emissiveIntensity={3}
-            toneMapped={false}
-          />
-        </mesh>
-      )}
+      {/* Monitor Stand */}
+      <mesh position={[-0.4, -0.5, 0]}>
+        <cylinderGeometry args={[0.05, 0.05, 0.4]} />
+        <meshStandardMaterial color="#444444" />
+      </mesh>
+      <mesh position={[-0.4, -0.7, 0]}>
+        <cylinderGeometry args={[0.3, 0.3, 0.05]} />
+        <meshStandardMaterial color="#444444" />
+      </mesh>
       <Text
         ref={textRef}
         position={[0, 1, 0]}
@@ -62,7 +53,59 @@ function Node({
         anchorX="center"
         anchorY="middle"
       >
-        {label}
+        Client
+      </Text>
+    </group>
+  );
+}
+
+function ServerRack({
+  position,
+  isListening,
+}: {
+  position: THREE.Vector3;
+  isListening?: boolean;
+}) {
+  const textRef = useRef<any>(null!);
+  useFrame((state) => {
+    if (textRef.current) {
+      textRef.current.quaternion.copy(state.camera.quaternion);
+    }
+  });
+
+  return (
+    <group position={position}>
+      {/* Rack Frame */}
+      <mesh>
+        <boxGeometry args={[1, 2.2, 1.2]} />
+        <meshStandardMaterial color="#222222" />
+      </mesh>
+      {/* Server Units */}
+      {[...Array(4)].map((_, i) => (
+        <mesh key={i} position={[0, 0.8 - i * 0.5, 0.05]}>
+          <boxGeometry args={[0.8, 0.4, 1.1]} />
+          <meshStandardMaterial color="#444444" />
+        </mesh>
+      ))}
+      {/* Listening Light */}
+      <mesh position={[-0.35, 0.8, 0.65]}>
+        <sphereGeometry args={[0.05]} />
+        <meshStandardMaterial
+          color={isListening ? "#FFFF00" : "#555555"}
+          emissive={isListening ? "#FFFF00" : "#555555"}
+          emissiveIntensity={isListening ? 5 : 1}
+          toneMapped={false}
+        />
+      </mesh>
+      <Text
+        ref={textRef}
+        position={[0, 1.5, 0]}
+        fontSize={0.4}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+      >
+        Server
       </Text>
     </group>
   );
@@ -70,51 +113,42 @@ function Node({
 
 function Packet({ step }: { step: number }) {
   const ref = useRef<THREE.Mesh>(null!);
-  const trailRef = useRef<THREE.Mesh>(null!);
 
   useEffect(() => {
+    // Reset position and visibility when step changes to a "packet" step
     if (step === 3 || step === 5) {
       ref.current.position.copy(clientPos);
       ref.current.visible = true;
-      if (trailRef.current) trailRef.current.visible = true;
     } else {
       ref.current.visible = false;
-      if (trailRef.current) trailRef.current.visible = false;
     }
   }, [step]);
 
-  useFrame(() => {
-    if (!ref.current.visible) return;
+  useFrame((_, delta) => {
+    if (!ref.current || !ref.current.visible) return;
 
-    if (step === 3) {
-      // Connect packet
-      ref.current.position.lerp(serverPos, 0.05);
-    }
-    if (step === 5) {
-      // Data packet
-      const midPoint = new THREE.Vector3().lerpVectors(
-        clientPos,
-        serverPos,
-        0.5
-      );
-      const pathProgress = Math.sin(Date.now() * 0.002) * 0.5 + 0.5; // oscillate
-      ref.current.position.lerpVectors(clientPos, serverPos, pathProgress);
-      ref.current.position.y = Math.sin(pathProgress * Math.PI) * 1.5;
+    let targetPos: THREE.Vector3 | null = null;
+    if (step === 3) targetPos = serverPos; // Connect packet (SYN)
+    if (step === 5) targetPos = serverPos; // Data packet
+
+    if (targetPos) {
+      ref.current.position.lerp(targetPos, 6 * delta); // Use delta for frame-rate independence
+      if (ref.current.position.distanceTo(targetPos) < 0.2) {
+        ref.current.visible = false;
+      }
     }
   });
 
   return (
-    <Trail width={0.5} length={4} color={"#00FFFF"} attenuation={(t) => t * t}>
-      <mesh ref={ref} visible={false}>
-        <sphereGeometry args={[0.15, 16, 16]} />
-        <meshStandardMaterial
-          color="#00FFFF"
-          emissive="#00FFFF"
-          emissiveIntensity={5}
-          toneMapped={false}
-        />
-      </mesh>
-    </Trail>
+    <mesh ref={ref} visible={false}>
+      <sphereGeometry args={[0.15, 16, 16]} />
+      <meshStandardMaterial
+        color="#00FFFF"
+        emissive="#00FFFF"
+        emissiveIntensity={3}
+        toneMapped={false}
+      />
+    </mesh>
   );
 }
 
@@ -122,6 +156,7 @@ function ConnectionLine({ step }: { step: number }) {
   const ref = useRef<any>(null!);
 
   useFrame(() => {
+    if (!ref.current) return;
     const targetScale = step >= 4 && step <= 6 ? 1 : 0;
     ref.current.scale.x = THREE.MathUtils.lerp(
       ref.current.scale.x,
@@ -144,7 +179,7 @@ function ConnectionLine({ step }: { step: number }) {
       <meshStandardMaterial
         color="#7DF9FF"
         emissive="#7DF9FF"
-        emissiveIntensity={3}
+        emissiveIntensity={1.5}
         toneMapped={false}
       />
     </mesh>
@@ -158,25 +193,29 @@ export default function IpProgrammingScene({ step }: { step: number }) {
     const controls = cameraControlsRef.current;
     if (!controls) return;
 
+    // Adjust camera positions for new models
     switch (step) {
-      case 0:
+      case 0: // Start
         controls.setLookAt(0, 2, 12, 0, 0, 0, true);
         break;
-      case 1:
-        controls.setLookAt(0, 1, 8, 0, 0, 0, true);
+      case 1: // socket()
+        controls.setLookAt(0, 1, 10, 0, 0, 0, true);
         break;
-      case 2:
-        controls.setLookAt(-4, 1, 5, -4, 0, 0, true); // Focus on Server
+      case 2: // bind() & listen()
+        controls.setLookAt(-4, 1, 6, -4, 0, 0, true); // Focus on Server
         break;
-      case 3:
-        controls.setLookAt(0, 3, 10, 0, 0, 0, true); // Zoom out to see packet travel
+      case 3: // connect()
+        controls.setLookAt(0, 2, 12, 0, 0, 0, true); // Zoom out to see packet
         break;
-      case 4:
-      case 5:
-        controls.setLookAt(0, 0, 9, 0, 0, 0, true); // Focus on connection
+      case 4: // accept()
+      case 5: // data exchange
+        controls.setLookAt(0, 1, 10, 0, 0, 0, true); // Focus on connection
         break;
-      case 6:
+      case 6: // close()
         controls.setLookAt(0, 2, 14, 0, 0, 0, true); // Zoom out as connection fades
+        break;
+      default:
+        controls.setLookAt(0, 2, 12, 0, 0, 0, true);
         break;
     }
   }, [step]);
@@ -184,34 +223,17 @@ export default function IpProgrammingScene({ step }: { step: number }) {
   return (
     <>
       <CameraControls ref={cameraControlsRef} />
-      <color attach="background" args={["#000000"]} />
-      <ambientLight intensity={0.2} />
-      <pointLight position={[0, 5, 5]} intensity={50} color="lightblue" />
-      <Stars
-        radius={100}
-        depth={50}
-        count={5000}
-        factor={4}
-        saturation={0}
-        fade
-        speed={1}
-      />
-      <Sparkles count={100} scale={8} size={6} speed={0.4} color="#FFD700" />
+      <color attach="background" args={["#111827"]} />
+      <ambientLight intensity={0.8} />
+      <directionalLight position={[5, 5, 5]} intensity={1.5} />
 
-      <Node position={clientPos} label="Client" color="#9370DB" />
-      <Node
-        position={serverPos}
-        label="Server"
-        color="#1E90FF"
-        isListening={step >= 2 && step <= 6}
-      />
+      <ClientPC position={clientPos} />
+      <ServerRack position={serverPos} isListening={step >= 2 && step <= 6} />
 
       <Packet step={step} />
       <ConnectionLine step={step} />
 
-      <EffectComposer>
-        <Bloom luminanceThreshold={0.3} intensity={1.5} mipmapBlur />
-      </EffectComposer>
+      <gridHelper args={[100, 100, "#333", "#222"]} position={[0, -1, 0]} />
     </>
   );
 }
