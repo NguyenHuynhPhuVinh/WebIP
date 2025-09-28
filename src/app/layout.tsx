@@ -41,6 +41,12 @@ export default function RootLayout({
           <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
             {children}
           </main>
+          <footer className="w-full text-center py-6 border-t border-gray-700 mt-12">
+            <p className="text-sm text-gray-500">
+              &copy; {new Date().getFullYear()} IP Programming Demo. All Rights
+              Reserved.
+            </p>
+          </footer>
         </div>
       </body>
     </html>

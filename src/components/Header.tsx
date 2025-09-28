@@ -51,6 +51,26 @@ export default function Header() {
           >
             TRA CỨU IP
           </Link>
+          <Link
+            href="/tools"
+            className={`transition-colors duration-200 ${
+              pathname.startsWith("/tools")
+                ? "text-blue-400"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            CÔNG CỤ
+          </Link>
+          <Link
+            href="/learn"
+            className={`transition-colors duration-200 ${
+              pathname.startsWith("/learn")
+                ? "text-blue-400"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            KIẾN THỨC
+          </Link>
         </nav>
       </div>
     </header>
