@@ -81,6 +81,16 @@ export default function Header() {
           >
             HƯỚNG DẪN
           </Link>
+          <Link
+            href="/guide-3d"
+            className={`transition-colors duration-200 ${
+              pathname.startsWith("/guide-3d")
+                ? "text-blue-400"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            HƯỚNG DẪN 3D
+          </Link>
         </nav>
       </div>
     </header>
