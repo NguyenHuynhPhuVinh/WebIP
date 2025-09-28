@@ -1,60 +1,43 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Text, CameraControls } from "@react-three/drei";
+import { Text, CameraControls, Torus } from "@react-three/drei";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 
-const serverPos = new THREE.Vector3(-4, 0, 0);
-const clientPos = new THREE.Vector3(4, 0, 0);
+const serverPos = new THREE.Vector3(-4.5, 0, 0);
+const clientPos = new THREE.Vector3(4.5, 0, 0);
 
 function ClientPC({ position }: { position: THREE.Vector3 }) {
-  const textRef = useRef<any>(null!);
-  useFrame((state) => {
-    if (textRef.current) {
-      textRef.current.quaternion.copy(state.camera.quaternion);
-    }
-  });
-
   return (
     <group position={position}>
-      {/* PC Tower */}
-      <mesh position={[0.5, -0.3, 0]}>
-        <boxGeometry args={[0.4, 1, 0.8]} />
-        <meshStandardMaterial color="#333333" />
-      </mesh>
-      {/* Monitor */}
-      <mesh position={[-0.4, 0.1, 0]}>
-        <boxGeometry args={[1.2, 0.9, 0.1]} />
-        <meshStandardMaterial color="#222222" />
-      </mesh>
-      {/* Screen */}
-      <mesh position={[-0.4, 0.1, 0.06]}>
-        <boxGeometry args={[1.1, 0.8, 0.02]} />
-        <meshStandardMaterial
-          color="#55DDFF"
-          emissive="#55DDFF"
-          emissiveIntensity={0.3}
-          toneMapped={false}
-        />
-      </mesh>
-      {/* Monitor Stand */}
-      <mesh position={[-0.4, -0.5, 0]}>
-        <cylinderGeometry args={[0.05, 0.05, 0.4]} />
-        <meshStandardMaterial color="#444444" />
-      </mesh>
-      <mesh position={[-0.4, -0.7, 0]}>
-        <cylinderGeometry args={[0.3, 0.3, 0.05]} />
-        <meshStandardMaterial color="#444444" />
-      </mesh>
       <Text
-        ref={textRef}
-        position={[0, 1, 0]}
+        position={[0, 1.5, 0]}
         fontSize={0.4}
         color="white"
         anchorX="center"
-        anchorY="middle"
       >
         Client
       </Text>
+      {/* Monitor */}
+      <mesh position={[0, 0.35, 0]}>
+        <boxGeometry args={[1.5, 1, 0.1]} />
+        <meshStandardMaterial color="#222" />
+      </mesh>
+      {/* Screen */}
+      <mesh position={[0, 0.35, 0.06]}>
+        <planeGeometry args={[1.4, 0.9]} />
+        <meshStandardMaterial color="#55DDFF" emissive="#55DDFF" />
+      </mesh>
+      {/* Stand */}
+      <mesh position={[0, -0.3, 0]}>
+        <boxGeometry args={[0.2, 0.4, 0.2]} />
+        <meshStandardMaterial color="#444" />
+      </mesh>
+      {/* Base */}
+      <mesh position={[0, -0.5, 0]} rotation-x={-Math.PI / 2}>
+        <circleGeometry args={[0.4, 32]} />
+        <meshStandardMaterial color="#444" />
+      </mesh>
     </group>
   );
 }
@@ -66,85 +49,96 @@ function ServerRack({
   position: THREE.Vector3;
   isListening?: boolean;
 }) {
-  const textRef = useRef<any>(null!);
-  useFrame((state) => {
-    if (textRef.current) {
-      textRef.current.quaternion.copy(state.camera.quaternion);
+  const lightRef = useRef<THREE.Mesh>(null!);
+  useFrame(({ clock }) => {
+    if (isListening && lightRef.current) {
+      (
+        lightRef.current.material as THREE.MeshStandardMaterial
+      ).emissiveIntensity = Math.sin(clock.elapsedTime * 5) * 2 + 3;
     }
   });
-
   return (
     <group position={position}>
-      {/* Rack Frame */}
-      <mesh>
-        <boxGeometry args={[1, 2.2, 1.2]} />
-        <meshStandardMaterial color="#222222" />
-      </mesh>
-      {/* Server Units */}
-      {[...Array(4)].map((_, i) => (
-        <mesh key={i} position={[0, 0.8 - i * 0.5, 0.05]}>
-          <boxGeometry args={[0.8, 0.4, 1.1]} />
-          <meshStandardMaterial color="#444444" />
-        </mesh>
-      ))}
-      {/* Listening Light */}
-      <mesh position={[-0.35, 0.8, 0.65]}>
-        <sphereGeometry args={[0.05]} />
-        <meshStandardMaterial
-          color={isListening ? "#FFFF00" : "#555555"}
-          emissive={isListening ? "#FFFF00" : "#555555"}
-          emissiveIntensity={isListening ? 5 : 1}
-          toneMapped={false}
-        />
-      </mesh>
       <Text
-        ref={textRef}
         position={[0, 1.5, 0]}
         fontSize={0.4}
         color="white"
         anchorX="center"
-        anchorY="middle"
       >
         Server
       </Text>
+      {/* Rack */}
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[1.2, 2.2, 1.5]} />
+        <meshStandardMaterial color="#111" />
+      </mesh>
+      {/* Server units */}
+      {[...Array(4)].map((_, i) => (
+        <group key={i}>
+          <mesh position={[0, 0.8 - i * 0.5, 0.05]}>
+            <boxGeometry args={[1, 0.4, 1.4]} />
+            <meshStandardMaterial color="#333" />
+          </mesh>
+          <mesh
+            ref={i === 0 ? lightRef : null}
+            position={[-0.4, 0.8 - i * 0.5, 0.76]}
+          >
+            <circleGeometry args={[0.03, 16]} />
+            <meshStandardMaterial
+              color={isListening ? "yellow" : "gray"}
+              emissive={isListening ? "yellow" : "gray"}
+              emissiveIntensity={isListening ? 5 : 0.1}
+              toneMapped={false}
+            />
+          </mesh>
+        </group>
+      ))}
     </group>
   );
 }
 
-function Packet({ step }: { step: number }) {
+function Socket({ isVisible, position, isListening }: any) {
   const ref = useRef<THREE.Mesh>(null!);
-
-  useEffect(() => {
-    // Reset position and visibility when step changes to a "packet" step
-    if (step === 3 || step === 5) {
-      ref.current.position.copy(clientPos);
-      ref.current.visible = true;
-    } else {
-      ref.current.visible = false;
+  useFrame(({ clock }) => {
+    if (isListening) {
+      const scale = 1 + Math.sin(clock.elapsedTime * 3) * 0.1;
+      ref.current.scale.set(scale, scale, scale);
     }
-  }, [step]);
+  });
+  return (
+    <Torus
+      ref={ref}
+      args={[0.5, 0.05, 16, 100]}
+      position={position}
+      rotation-x={Math.PI / 2}
+      visible={isVisible}
+    >
+      <meshStandardMaterial
+        color="yellow"
+        emissive="yellow"
+        emissiveIntensity={2}
+        toneMapped={false}
+      />
+    </Torus>
+  );
+}
 
+function Packet({ packet, onComplete }: any) {
+  const ref = useRef<THREE.Mesh>(null!);
   useFrame((_, delta) => {
-    if (!ref.current || !ref.current.visible) return;
-
-    let targetPos: THREE.Vector3 | null = null;
-    if (step === 3) targetPos = serverPos; // Connect packet (SYN)
-    if (step === 5) targetPos = serverPos; // Data packet
-
-    if (targetPos) {
-      ref.current.position.lerp(targetPos, 6 * delta); // Use delta for frame-rate independence
-      if (ref.current.position.distanceTo(targetPos) < 0.2) {
-        ref.current.visible = false;
-      }
+    if (ref.current.position.distanceTo(packet.to) > 0.1) {
+      ref.current.position.lerp(packet.to, delta * 5);
+    } else {
+      onComplete(packet.id);
     }
   });
 
   return (
-    <mesh ref={ref} visible={false}>
-      <sphereGeometry args={[0.15, 16, 16]} />
+    <mesh ref={ref} position={packet.from}>
+      <sphereGeometry args={[0.1, 16, 16]} />
       <meshStandardMaterial
-        color="#00FFFF"
-        emissive="#00FFFF"
+        color={packet.color}
+        emissive={packet.color}
         emissiveIntensity={3}
         toneMapped={false}
       />
@@ -156,8 +150,7 @@ function ConnectionLine({ step }: { step: number }) {
   const ref = useRef<any>(null!);
 
   useFrame(() => {
-    if (!ref.current) return;
-    const targetScale = step >= 4 && step <= 6 ? 1 : 0;
+    const targetScale = step >= 5 && step <= 6 ? 1 : 0;
     ref.current.scale.x = THREE.MathUtils.lerp(
       ref.current.scale.x,
       targetScale,
@@ -170,8 +163,7 @@ function ConnectionLine({ step }: { step: number }) {
     new THREE.CatmullRomCurve3(points),
     64,
     0.05,
-    8,
-    false
+    8
   );
 
   return (
@@ -179,43 +171,63 @@ function ConnectionLine({ step }: { step: number }) {
       <meshStandardMaterial
         color="#7DF9FF"
         emissive="#7DF9FF"
-        emissiveIntensity={1.5}
+        emissiveIntensity={2}
         toneMapped={false}
       />
     </mesh>
   );
 }
 
+let packetId = 0;
+
 export default function IpProgrammingScene({ step }: { step: number }) {
   const cameraControlsRef = useRef<CameraControls>(null!);
+  const [packets, setPackets] = useState<any[]>([]);
+
+  const addPacket = (from: THREE.Vector3, to: THREE.Vector3, color: string) => {
+    setPackets((p) => [...p, { id: packetId++, from, to, color }]);
+  };
+
+  const handlePacketComplete = (id: number) => {
+    setPackets((p) => p.filter((packet) => packet.id !== id));
+  };
 
   useEffect(() => {
     const controls = cameraControlsRef.current;
     if (!controls) return;
 
-    // Adjust camera positions for new models
+    // Reset packets on step change to avoid artifacts
+    setPackets([]);
+
     switch (step) {
-      case 0: // Start
+      case 0:
         controls.setLookAt(0, 2, 12, 0, 0, 0, true);
         break;
-      case 1: // socket()
+      case 1:
         controls.setLookAt(0, 1, 10, 0, 0, 0, true);
         break;
-      case 2: // bind() & listen()
-        controls.setLookAt(-4, 1, 6, -4, 0, 0, true); // Focus on Server
+      case 2:
+        controls.setLookAt(-4.5, 1, 6, -4.5, 0, 0, true); // Focus Server
         break;
-      case 3: // connect()
-        controls.setLookAt(0, 2, 12, 0, 0, 0, true); // Zoom out to see packet
+      case 3:
+        controls.setLookAt(0, 2, 12, 0, 0, 0, true); // See SYN packet
+        addPacket(clientPos, serverPos, "#00FFFF"); // SYN
         break;
-      case 4: // accept()
-      case 5: // data exchange
-        controls.setLookAt(0, 1, 10, 0, 0, 0, true); // Focus on connection
+      case 4:
+        controls.setLookAt(0, 2, 12, 0, 0, 0, true); // See SYN-ACK
+        addPacket(serverPos, clientPos, "#FF00FF"); // SYN-ACK
         break;
-      case 6: // close()
-        controls.setLookAt(0, 2, 14, 0, 0, 0, true); // Zoom out as connection fades
+      case 5:
+        controls.setLookAt(0, 1, 11, 0, 0, 0, true); // See ACK and connection
+        addPacket(clientPos, serverPos, "#00FFFF"); // ACK
         break;
-      default:
-        controls.setLookAt(0, 2, 12, 0, 0, 0, true);
+      case 6:
+        controls.setLookAt(0, 1, 11, 0, 0, 0, true); // Data exchange
+        addPacket(clientPos, serverPos, "#00FF00"); // Data
+        setTimeout(() => addPacket(serverPos, clientPos, "#FFFF00"), 1000); // Response
+        break;
+      case 7:
+        controls.setLookAt(0, 2, 14, 0, 0, 0, true); // Close
         break;
     }
   }, [step]);
@@ -223,17 +235,39 @@ export default function IpProgrammingScene({ step }: { step: number }) {
   return (
     <>
       <CameraControls ref={cameraControlsRef} />
-      <color attach="background" args={["#111827"]} />
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[5, 5, 5]} intensity={1.5} />
+      <color attach="background" args={["#1a2635"]} />
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[5, 10, 5]} intensity={1.5} />
+      <pointLight
+        position={[0, 2, 0]}
+        intensity={30}
+        color="#7DF9FF"
+        decay={2}
+      />
+
+      <gridHelper args={[100, 100, "#333", "#222"]} position={[0, -0.6, 0]} />
 
       <ClientPC position={clientPos} />
-      <ServerRack position={serverPos} isListening={step >= 2 && step <= 6} />
+      <ServerRack position={serverPos} isListening={step >= 2 && step <= 7} />
 
-      <Packet step={step} />
+      <Socket
+        isVisible={step >= 1 && step < 8}
+        position={clientPos.clone().add(new THREE.Vector3(-1.2, 0, 0))}
+      />
+      <Socket
+        isVisible={step >= 1 && step < 8}
+        position={serverPos.clone().add(new THREE.Vector3(1.2, 0, 0))}
+        isListening={step >= 2 && step < 5}
+      />
+
+      {packets.map((p) => (
+        <Packet key={p.id} packet={p} onComplete={handlePacketComplete} />
+      ))}
       <ConnectionLine step={step} />
 
-      <gridHelper args={[100, 100, "#333", "#222"]} position={[0, -1, 0]} />
+      <EffectComposer>
+        <Bloom luminanceThreshold={0.5} intensity={0.8} mipmapBlur />
+      </EffectComposer>
     </>
   );
 }

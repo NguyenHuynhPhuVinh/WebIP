@@ -6,35 +6,43 @@ import IpProgrammingScene from "@/components/scene/IpProgrammingScene";
 
 const steps = [
   {
-    title: "Khởi đầu",
+    title: "Bước 0: Khởi đầu",
     description: "Không gian mạng với Client và Server ở trạng thái chờ.",
   },
   {
     title: "Bước 1: `socket()`",
-    description: "Cả hai bên tạo ra các điểm cuối giao tiếp (socket).",
+    description:
+      "Cả Client và Server đều tạo ra một điểm cuối giao tiếp (socket) để chuẩn bị cho việc kết nối.",
   },
   {
     title: "Bước 2: `bind()` & `listen()`",
     description:
-      "Server gắn vào một địa chỉ và bắt đầu phát tín hiệu lắng nghe.",
+      "Server gắn socket vào một địa chỉ IP và cổng, sau đó chuyển sang trạng thái lắng nghe, sẵn sàng nhận kết nối.",
   },
   {
-    title: "Bước 3: `connect()`",
+    title: "Bước 3: `connect()` (Gửi SYN)",
     description:
-      "Client gửi một gói tin kết nối (SYN) xuyên qua không gian mạng.",
+      "Client bắt đầu quá trình kết nối bằng cách gửi một gói tin đồng bộ (SYN) đến Server.",
   },
   {
-    title: "Bước 4: `accept()`",
+    title: "Bước 4: `accept()` (Phản hồi SYN-ACK)",
     description:
-      "Server chấp nhận, một kênh năng lượng (kết nối) được hình thành.",
+      "Server nhận gói SYN, và gửi lại một gói tin xác nhận đồng bộ (SYN-ACK) để báo cho Client rằng nó đã sẵn sàng.",
   },
   {
-    title: "Bước 5: Trao đổi dữ liệu",
-    description: "Các gói tin dữ liệu được truyền qua kênh năng lượng.",
+    title: "Bước 5: `accept()` (Gửi ACK & Hoàn tất kết nối)",
+    description:
+      "Client nhận SYN-ACK và gửi lại một gói tin xác nhận (ACK). Kết nối TCP được thiết lập thành công!",
   },
   {
-    title: "Bước 6: `close()`",
-    description: "Kênh năng lượng mờ dần và kết nối được đóng lại.",
+    title: "Bước 6: Trao đổi dữ liệu",
+    description:
+      "Client gửi một gói tin dữ liệu đến Server, và Server xử lý rồi gửi lại một gói tin phản hồi.",
+  },
+  {
+    title: "Bước 7: `close()`",
+    description:
+      "Sau khi hoàn tất, kết nối được đóng lại, và các socket được giải phóng.",
   },
   { title: "Hoàn tất", description: "Nhấn 'Chạy lại' để bắt đầu lại." },
 ];
