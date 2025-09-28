@@ -1,21 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
-  const [ip, setIp] = useState("");
-  const router = useRouter();
   const pathname = usePathname();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (ip.trim()) {
-      router.push(`/lookup/${ip.trim()}`);
-      setIp("");
-    }
-  };
 
   return (
     <header className="w-full border-b border-gray-700 sticky top-0 bg-gray-900/80 backdrop-blur-lg z-10">
@@ -63,22 +52,6 @@ export default function Header() {
             TRA CỨU IP
           </Link>
         </nav>
-
-        <form onSubmit={handleSearch} className="relative hidden sm:block">
-          <input
-            type="text"
-            value={ip}
-            onChange={(e) => setIp(e.target.value)}
-            placeholder="Tra cứu IP hoặc tên miền..."
-            className="bg-gray-800 border border-gray-700 rounded-md py-2 pl-4 pr-24 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-          />
-          <button
-            type="submit"
-            className="absolute right-1 top-1 h-[calc(100%-8px)] bg-blue-600 text-white px-3 rounded-md hover:bg-blue-700 font-bold text-xs"
-          >
-            Tìm kiếm
-          </button>
-        </form>
       </div>
     </header>
   );

@@ -1,4 +1,5 @@
 import MapWrapper from "@/components/MapWrapper";
+import SearchComponent from "@/components/SearchComponent";
 
 interface IpInfo {
   status: string;
@@ -57,10 +58,11 @@ export default async function LookupResultPage({
   };
 
   return (
-    <main className="w-full max-w-7xl flex-grow mt-6 bg-[#0f1a29] p-6 sm:p-8 rounded-lg">
-      <h1 className="text-2xl font-bold mb-6">
-        Kết quả tra cứu cho:{" "}
-        <span className="text-blue-400">
+    <div className="space-y-8">
+      <SearchComponent />
+      <h1 className="text-2xl font-bold text-center border-t border-gray-700 pt-8">
+        Kết quả tra cứu cho{" "}
+        <span className="text-blue-400 font-mono">
           {ipInfo.query || decodeURIComponent(params.ip)}
         </span>
       </h1>
@@ -111,6 +113,6 @@ export default async function LookupResultPage({
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
