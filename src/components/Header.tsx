@@ -74,7 +74,7 @@ export default function Header() {
           <Link
             href="/guide"
             className={`transition-colors duration-200 ${
-              pathname.startsWith("/guide")
+              pathname === "/guide" || pathname.startsWith("/guide/")
                 ? "text-blue-400"
                 : "text-gray-300 hover:text-white"
             }`}
