@@ -215,7 +215,7 @@ export default function LearnPage() {
         </div>
       </Section>
 
-      {/* Section 6 & 7 */}
+      {/* Section 6 */}
       <section className="bg-gray-800 border border-gray-700 rounded-lg p-6">
         <h2 className="text-2xl font-bold mb-4">
           6. Mô Hình TCP/IP Và Vai Trò Của IP
@@ -228,9 +228,10 @@ export default function LearnPage() {
           địa chỉ nguồn và đích vào gói tin. Tại đầu nhận, quá trình ngược lại
           để tái tạo dữ liệu.
         </p>
-        <h3 className="text-xl font-semibold mt-6 mb-2">
-          Các Lớp Trong Mô Hình TCP/IP:
-        </h3>
+      </section>
+
+      {/* Section 7 */}
+      <Section title="7. Các Lớp Trong Mô Hình TCP/IP">
         <div className="space-y-4">
           <LayerCard
             layerName="Application (Lớp ứng dụng)"
@@ -253,7 +254,7 @@ export default function LearnPage() {
             description="Xử lý kết nối vật lý, tạo khung dữ liệu, và kiểm tra lỗi trên mạng cục bộ."
           />
         </div>
-      </section>
+      </Section>
 
       {/* Section 8 */}
       <Section title="8. Địa Chỉ IP Và Các Khái Niệm Cơ Bản">
@@ -295,6 +296,22 @@ export default function LearnPage() {
             <strong>Kiến Trúc Mạng:</strong> Hỗ trợ các mô hình như
             Client-Server (2 lớp), N-tier, Microservices, và các giao thức như
             REST, SOAP, tất cả đều dựa trên giao tiếp IP.
+          </li>
+        </ul>
+      </Section>
+
+      {/* Section 10 */}
+      <Section title="10. Ưu Điểm Và Nhược Điểm Của IP Programming">
+        <ul className="list-none space-y-3">
+          <li>
+            <strong className="text-green-400">Ưu điểm:</strong> Tính tương
+            thích cao, khả năng mở rộng, và là tiêu chuẩn cho Internet, cho phép
+            kết nối toàn cầu.
+          </li>
+          <li>
+            <strong className="text-red-400">Nhược điểm:</strong> Không có bảo
+            mật tích hợp (cần thêm lớp như TLS/IPsec), và IPv4 có giới hạn địa
+            chỉ (đang được giải quyết bởi IPv6).
           </li>
         </ul>
       </Section>
@@ -352,22 +369,6 @@ export default function LearnPage() {
           xây dựng ứng dụng mạng bền vững hơn.
         </p>
       </section>
-
-      {/* Section 10 */}
-      <Section title="10. Ưu Điểm Và Nhược Điểm Của IP Programming">
-        <ul className="list-none space-y-3">
-          <li>
-            <strong className="text-green-400">Ưu điểm:</strong> Tính tương
-            thích cao, khả năng mở rộng, và là tiêu chuẩn cho Internet, cho phép
-            kết nối toàn cầu.
-          </li>
-          <li>
-            <strong className="text-red-400">Nhược điểm:</strong> Không có bảo
-            mật tích hợp (cần thêm lớp như TLS/IPsec), và IPv4 có giới hạn địa
-            chỉ (đang được giải quyết bởi IPv6).
-          </li>
-        </ul>
-      </Section>
 
       {/* Section 12 */}
       <Section title="12. Bảo Mật Trong IP Programming">
@@ -475,7 +476,7 @@ function Section({
 }) {
   return (
     <section className="bg-gray-800 border border-gray-700 rounded-lg p-6 space-y-4">
-      <h2 className="text-2xl font-bold -mb-2">{title}</h2>
+      <h2 className="text-2xl font-bold mb-4">{title}</h2>
       {children}
     </section>
   );
